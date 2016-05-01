@@ -2,7 +2,9 @@
   "name": "echo-client",
   "version": "1.0.0",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "binaryjs": "^0.2.1"
+  },
   "description": "Echo Client",
   "scripts": {
     "test": "test"
