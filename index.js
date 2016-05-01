@@ -1,7 +1,21 @@
 var http = require('http');
-var server = http.createServer(function (req, res) {
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	res.end('Hello World\n');
+var path = require('path');
+var fs = require("fs");
+
+var INDEX_FILE = path.normalize('./public/index.html');
+
+var server = http.createServer(function (request, response) {
+	if(request.url === "/index"){
+		fs.readFile(INDEX_FILE, function (err, data) {
+			response.writeHead(200, {'Content-Type': 'text/html'});
+			response.write(data);
+			response.end();
+		});
+	} else{
+		response.writeHead(200, {'Content-Type': 'text/html'});
+		response.write('<b>Hey there!</b><br /><br />This is the default response. Requested URL is: ' + request.url);
+		response.end();
+	}
 }).listen(9000);
 
 var BinaryServer = require('binaryjs').BinaryServer,
