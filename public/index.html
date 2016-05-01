@@ -1,10 +1,55 @@
 <html>
 	<head>
-		<title>
-			Echo Client
-		</title>
+		<title> Echo Client </title>
+	 	<script src="http://cdn.binaryjs.com/0/binary.js"></script>
+		<script>
+			var isAskingMode = false;
+			// Connect to Binary.js server
+			var client = new BinaryClient('ws://localhost:9000');
+
+			function recordAndSendToServer() {
+
+			}
+
+			function receiveAndPlayResponse() {
+				// Received new audio stream from server!
+				client.on('stream', function(stream, meta){
+					// Buffer for parts
+					var parts = [];
+					// Got new data
+					stream.on('data', function(data){
+						parts.push(data);
+					});
+					stream.on('end', function(){
+						// Play the audio in browser!
+
+					});
+				});
+			}
+
+			function handleClick(event) {
+				isAskingMode = !isAskingMode;
+				//if was not asking,
+				if(isAskingMode) {
+					//open Server connection
+					openServerConnection();
+					recordAndSendToServer();
+					//TODO: Toggle the button state To Done Asking
+					event.currentTarget.text = 'Done Asking';
+					//TODO: Stream the audio from client to Server
+
+				} else {
+					//TODO: Receive the audio response from server
+					receiveAndPlayResponse();
+					//TODO: Disable the button until the response is played
+					event.currentTarget.disbled = true;
+					event.currentTarget.text = 'Ask';
+				}
+			}
+
+		</script>
 	</head>
 	<body>
-		Under Construction
+		<button type="submit" onClick="handleClick()"> Ask </button>
 	</body>
 </html>
