@@ -9,12 +9,22 @@
 		<script>
 			var isAskingMode = false;
 			var $askBtn = document.getElementById('askBtn');
+			if (!navigator.getUserMedia)
+			navigator.getUserMedia = navigator.getUserMedia ||
+									navigator.webkitGetUserMedia ||
+									navigator.mozGetUserMedia ||
+									navigator.msGetUserMedia;
+			if (!navigator.getUserMedia) {
+				alert('getUserMedia not supported in your browser.');
+			}
 
 			// Connect to Binary.js server
 			var client = new BinaryClient('ws://localhost:9000');
 
-			function recordAndSendToServer() {
-
+			function recordAndSendToServer(e) {
+				window.Stream = client.createStream();
+				var left = e.inputBuffer.getChannelData(0);
+				window.Stream.write(left);
 			}
 
 			function receiveAndPlayResponse() {
@@ -47,7 +57,7 @@
 					receiveAndPlayResponse();
 					//TODO: Disable the button until the response is played
 					event.currentTarget.disbled = true;
-					event.currentTarget.text = 'Ask';
+					event.currentTarget.innerText = 'Ask';
 				}
 			}
 
