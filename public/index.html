@@ -1,9 +1,15 @@
 <html>
 	<head>
 		<title> Echo Client </title>
-	 	<script src="http://cdn.binaryjs.com/0/binary.js"></script>
+	 	<script src="/js/binary.min.js"></script>
+
+	</head>
+	<body>
+		<button type="submit" id ="askBtn" onclick="handleClick()" > Ask Me </button>
 		<script>
 			var isAskingMode = false;
+			var $askBtn = document.getElementById('askBtn');
+
 			// Connect to Binary.js server
 			var client = new BinaryClient('ws://localhost:9000');
 
@@ -27,15 +33,13 @@
 				});
 			}
 
-			function handleClick(event) {
+			function handleClick() {
 				isAskingMode = !isAskingMode;
 				//if was not asking,
-				if(isAskingMode) {
-					//open Server connection
-					openServerConnection();
+				if (isAskingMode) {
 					recordAndSendToServer();
 					//TODO: Toggle the button state To Done Asking
-					event.currentTarget.text = 'Done Asking';
+					$askBtn.innerText = 'Done Asking';
 					//TODO: Stream the audio from client to Server
 
 				} else {
@@ -48,8 +52,5 @@
 			}
 
 		</script>
-	</head>
-	<body>
-		<button type="submit" onClick="handleClick()"> Ask </button>
 	</body>
 </html>
