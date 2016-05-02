@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "binaryjs": "^0.2.1"
+    "binaryjs": "^0.2.1",
+    "express": "^4.13.4"
   },
   "description": "Echo Client",
   "scripts": {

@@ -1,22 +1,13 @@
 var http = require('http');
-var path = require('path');
-var fs = require("fs");
+var express = require('express');
+var app = express();
 
-var INDEX_FILE = path.normalize('./public/index.html');
+app.use(express.static('public'));
 
-var server = http.createServer(function (request, response) {
-	if(request.url === "/index"){
-		fs.readFile(INDEX_FILE, function (err, data) {
-			response.writeHead(200, {'Content-Type': 'text/html'});
-			response.write(data);
-			response.end();
-		});
-	} else{
-		response.writeHead(200, {'Content-Type': 'text/html'});
-		response.write('<b>Hey there!</b><br /><br />This is the default response. Requested URL is: ' + request.url);
-		response.end();
-	}
-}).listen(9000);
+// create a server with the express app as a listener
+var server = http.createServer(app).listen(9000);
+///////////
+
 
 var BinaryServer = require('binaryjs').BinaryServer,
 	fs = require('fs');
