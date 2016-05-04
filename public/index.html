@@ -7,59 +7,103 @@
 	<body>
 		<button type="submit" id ="askBtn" onclick="handleClick()" > Ask Me </button>
 		<script>
-			var isAskingMode = false;
-			var $askBtn = document.getElementById('askBtn');
-			if (!navigator.getUserMedia)
-			navigator.getUserMedia = navigator.getUserMedia ||
-									navigator.webkitGetUserMedia ||
-									navigator.mozGetUserMedia ||
-									navigator.msGetUserMedia;
-			if (!navigator.getUserMedia) {
-				alert('getUserMedia not supported in your browser.');
-			}
 
+		(function(window){
 			// Connect to Binary.js server
-			var client = new BinaryClient('ws://localhost:9000');
-
-			function recordAndSendToServer(e) {
-				window.Stream = client.createStream();
-				var left = e.inputBuffer.getChannelData(0);
-				window.Stream.write(left);
-			}
-
-			function receiveAndPlayResponse() {
-				// Received new audio stream from server!
-				client.on('stream', function(stream, meta){
-					// Buffer for parts
-					var parts = [];
-					// Got new data
-					stream.on('data', function(data){
-						parts.push(data);
-					});
-					stream.on('end', function(){
-						// Play the audio in browser!
-
-					});
-				});
-			}
-
-			function handleClick() {
-				isAskingMode = !isAskingMode;
-				//if was not asking,
-				if (isAskingMode) {
-					recordAndSendToServer();
-					//TODO: Toggle the button state To Done Asking
-					$askBtn.innerText = 'Done Asking';
-					//TODO: Stream the audio from client to Server
-
-				} else {
-					//TODO: Receive the audio response from server
-					receiveAndPlayResponse();
-					//TODO: Disable the button until the response is played
-					event.currentTarget.disbled = true;
-					event.currentTarget.innerText = 'Ask';
+			var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
+			client.on('opem', function() {
+				var isAskingMode = false;
+				var $askBtn = document.getElementById('askBtn');
+				if (!navigator.getUserMedia)
+				navigator.getUserMedia = navigator.getUserMedia ||
+										navigator.webkitGetUserMedia ||
+										navigator.mozGetUserMedia ||
+										navigator.msGetUserMedia;
+				if (!navigator.getUserMedia) {
+					alert('getUserMedia not supported in your browser.');
 				}
-			}
+
+				function sendToServer(e) {
+					var audioContext = window.AudioContext || window.webkitAudioContext;
+					context = new audioContext();
+					// the sample rate is in context.sampleRate
+					var audioInput = context.createMediaStreamSource(e);
+
+					var bufferSize = 2048;
+					var recorder = context.createScriptProcessor(bufferSize, 1, 1);
+
+					recorder.onaudioprocess = function(e){
+						if(!isAskingMode) return;
+						console.log ('recording');
+						var left = e.inputBuffer.getChannelData(0);
+						window.Stream.write(convertoFloat32ToInt16(left));
+					}
+
+					audioInput.connect(recorder)
+					recorder.connect(context.destination);
+				}
+
+				function recordAudio(e) {
+					navigator.getUserMedia({audio:true}, sendToServer, function(e) {
+						alert('Error capturing audio.');
+					});
+				}
+
+				function convertoFloat32ToInt16(buffer) {
+					var l = buffer.length;
+					var buf = new Int16Array(l)
+					while (l--) {
+						buf[l] = buffer[l]*0xFFFF;    //convert to 16 bit
+					}
+					return buf.buffer
+				}
+
+				function receiveAndPlayResponse() {
+					// Received new audio stream from server!
+					client.on('stream', function(stream, meta){
+						// Buffer for parts
+						var parts = [];
+						// Got new data
+						stream.on('data', function(data){
+							parts.push(data);
+						});
+						stream.on('end', function(){
+							// Play the audio in browser!
+							console.log('Got All the data----');
+						});
+					});
+				}
+
+				window.handleClick = function() {
+					isAskingMode = !isAskingMode;
+					//if was not asking,
+					if (isAskingMode) {
+						recordAudio();
+						//TODO: Toggle the button state To Done Asking
+						$askBtn.innerText = 'Done Asking';
+						//TODO: Stream the audio from client to Server
+
+					} else {
+						window.Stream.end();
+						//TODO: Receive the audio response from server
+						receiveAndPlayResponse();
+						//TODO: Disable the button until the response is played
+						event.currentTarget.disbled = true;
+						event.currentTarget.innerText = 'Ask';
+					}
+				}
+
+			})
+
+		})(this);
+
+
+
+
+
+
+
+
 
 		</script>
 	</body>
