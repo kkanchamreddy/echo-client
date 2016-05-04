@@ -11,7 +11,7 @@
 		(function(window){
 			// Connect to Binary.js server
 			var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
-			client.on('opem', function() {
+			client.on('open', function() {
 				var isAskingMode = false;
 				var $askBtn = document.getElementById('askBtn');
 				if (!navigator.getUserMedia)
@@ -73,7 +73,6 @@
 						});
 					});
 				}
-
 				window.handleClick = function() {
 					isAskingMode = !isAskingMode;
 					//if was not asking,
