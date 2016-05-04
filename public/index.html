@@ -12,6 +12,7 @@
 			// Connect to Binary.js server
 			var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
 			client.on('open', function() {
+				window.Stream = client.createStream();
 				var isAskingMode = false;
 				var $askBtn = document.getElementById('askBtn');
 				if (!navigator.getUserMedia)

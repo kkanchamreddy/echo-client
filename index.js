@@ -20,7 +20,7 @@ binaryserver.on('connection', function(client){
 	// Incoming stream from browsers
 	client.on('stream', function(stream, meta){
 		console.log('Streaming from Server......', meta);
-		var file = fs.createWriteStream(__dirname+ '/public/' + meta.name);
+		var file = fs.createWriteStream(__dirname+ '/public/' + 'demo.wav');
 		stream.pipe(file);
 	})
 });
