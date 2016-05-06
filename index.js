@@ -1,6 +1,7 @@
 var http = require('http');
 var express = require('express');
 var app = express();
+var wav = require('wav');
 
 app.use(express.static('public'));
 //app.listen(3000);
@@ -17,10 +18,20 @@ var BinaryServer = require('binaryjs').BinaryServer,
 var binaryserver = new BinaryServer({server: server, path: '/binary-endpoint'});
 
 binaryserver.on('connection', function(client){
+	var fileWriter = new wav.FileWriter('demo1.wav', {
+		channels: 1,
+		sampleRate: 48000,
+		bitDepth: 16
+	 });
+
 	// Incoming stream from browsers
 	client.on('stream', function(stream, meta){
-		console.log('Streaming from Server......', meta);
-		var file = fs.createWriteStream(__dirname+ '/public/' + 'demo.wav');
-		stream.pipe(file);
+		console.log('new stream');
+
+		stream.pipe(fileWriter);
+		stream.on('end', function() {
+			fileWriter.end();
+			console.log('wrote to file demo1.wav' );
+		});
 	})
 });
