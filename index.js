@@ -34,8 +34,10 @@ binaryserver.on('connection', function(client){
 			fileWriter.end();
 			console.log('wrote to file ', meta );
 
-			//var send = client.createStream(meta);
-			client.pipe(stream);
+			var file = fs.createReadStream(FILE);
+			client.send(file);
+
+
 		});
 	})
 });
