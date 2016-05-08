@@ -61,13 +61,21 @@
 
 				function receiveAndPlayResponse() {
 					// Received new audio stream from server!
+					var source = context.createBufferSource();
 					client.on('stream', function(stream, meta){
 						// Buffer for parts
 						var parts = [];
 						// Got new data
 						stream.on('data', function(data){
 							parts.push(data);
-						});
+							context.decodeAudioData(data, function(buffer) {
+						        source.buffer = buffer;
+								source.connect(context.destination);
+						        source.loop = true;
+						      },
+						      function(e){"Error with decoding audio data" + e.err}
+						  	);
+						  });
 						stream.on('end', function(){
 							// Play the audio in browser!
 							console.log('Got All the data----', parts);
