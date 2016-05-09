@@ -11,6 +11,7 @@
 		(function(window){
 			// Connect to Binary.js server
 			var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
+			var source;
 			client.on('open', function() {
 				window.Stream = client.createStream();
 				var isAskingMode = false;
@@ -61,7 +62,7 @@
 
 				function receiveAndPlayResponse() {
 					// Received new audio stream from server!
-					var source = context.createBufferSource();
+					source = context.createBufferSource();
 
 					source.start(0);
 					client.on('stream', function(stream, meta){
@@ -84,6 +85,7 @@
 								//_audioBuffer = buf;
 								source.buffer = buf;
 								source.connect(context.destination);
+								//source.stop(0);
 							});
 						});
 					});
@@ -92,6 +94,9 @@
 					isAskingMode = !isAskingMode;
 					//if was not asking,
 					if (isAskingMode) {
+						if(source) {
+							source.stop(0);
+						}
 						recordAudio();
 						//TODO: Toggle the button state To Done Asking
 						$askBtn.innerText = 'Done Asking';
@@ -103,7 +108,7 @@
 						receiveAndPlayResponse();
 						//TODO: Disable the button until the response is played
 						event.currentTarget.disbled = true;
-						event.currentTarget.innerText = 'Ask';
+						event.currentTarget.innerText = 'Ask Me';
 					}
 				}
 
