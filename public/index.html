@@ -62,23 +62,29 @@
 				function receiveAndPlayResponse() {
 					// Received new audio stream from server!
 					var source = context.createBufferSource();
+
+					source.start(0);
 					client.on('stream', function(stream, meta){
 						// Buffer for parts
 						var parts = [];
 						// Got new data
 						stream.on('data', function(data){
 							parts.push(data);
-							context.decodeAudioData(data, function(buffer) {
-						        source.buffer = buffer;
-								source.connect(context.destination);
-						        source.loop = true;
-						      },
-						      function(e){"Error with decoding audio data" + e.err}
-						  	);
+
 						  });
 						stream.on('end', function(){
-							// Play the audio in browser!
-							console.log('Got All the data----', parts);
+
+							var nowBuffering = parts.reduce(function(buffer1, buffer2) {
+								var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+								tmp.set(new Uint8Array(buffer1), 0);
+								tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+								return tmp.buffer;
+							});
+							context.decodeAudioData(nowBuffering, function(buf) {
+								//_audioBuffer = buf;
+								source.buffer = buf;
+								source.connect(context.destination);
+							});
 						});
 					});
 				}
