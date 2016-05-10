@@ -19,6 +19,8 @@
 			alert('getUserMedia not supported in your browser.');
 		}
 
+		var audioContext = window.AudioContext || window.webkitAudioContext;
+		context = new audioContext();
 
 			// Connect to Binary.js server
 		var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
@@ -70,8 +72,7 @@
 		}
 
 		function sendToServer(e) {
-			var audioContext = window.AudioContext || window.webkitAudioContext;
-			context = new audioContext();
+
 			// the sample rate is in context.sampleRate
 			var audioInput = context.createMediaStreamSource(e);
 
