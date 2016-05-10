@@ -87,16 +87,20 @@ var BinaryServer = require('binaryjs').BinaryServer;
 // Create a BinaryServer attached to our existing server
 var binaryserver = new BinaryServer({server: server, path: '/binary-endpoint'});
 
-binaryserver.on('connection', function(client){
-	var fileWriter = new wav.FileWriter(FILE, {
+function getFileWriter() {
+	return new wav.FileWriter(FILE, {
 		channels: 1,
 		sampleRate: 48000,
 		bitDepth: 16
 	 });
+}
+
+binaryserver.on('connection', function(client){
 
 	// Incoming stream from browsers
 	client.on('stream', function(stream, meta){
 		console.log('new stream', meta);
+		var fileWriter = getFileWriter();
 
 		stream.pipe(fileWriter);
 		stream.on('end', function() {
