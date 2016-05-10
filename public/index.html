@@ -36,12 +36,10 @@
 			Stream.end();
 			source.start(0);
 			client.on('stream', function(stream, meta){
-				console.log('on Stream-------');
 				// Buffer for parts
 				var parts = [];
 				// Got new data
 				stream.on('data', function(data){
-					console.log('Getting Data back--------');
 					parts.push(data);
 
 				  });
@@ -54,10 +52,8 @@
 						return tmp.buffer;
 					});
 					context.decodeAudioData(nowBuffering, function(buf) {
-						//_audioBuffer = buf;
 						source.buffer = buf;
 						source.connect(context.destination);
-						//source.stop(0);
 					});
 				});
 			});
