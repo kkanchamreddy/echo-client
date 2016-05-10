@@ -7,117 +7,110 @@
 	<body>
 		<button type="submit" id ="askBtn" onclick="handleClick()" > Ask Me </button>
 		<script>
+		var isAskingMode = false;
+		var $askBtn = document.getElementById('askBtn');
 
-		(function(window){
+		if (!navigator.getUserMedia)
+			navigator.getUserMedia = navigator.getUserMedia ||
+									navigator.webkitGetUserMedia ||
+									navigator.mozGetUserMedia ||
+									navigator.msGetUserMedia;
+		if (!navigator.getUserMedia) {
+			alert('getUserMedia not supported in your browser.');
+		}
+
+
 			// Connect to Binary.js server
-			var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
-			var source;
-			client.on('open', function() {
-				window.Stream = client.createStream();
-				var isAskingMode = false;
-				var $askBtn = document.getElementById('askBtn');
-				if (!navigator.getUserMedia)
-				navigator.getUserMedia = navigator.getUserMedia ||
-										navigator.webkitGetUserMedia ||
-										navigator.mozGetUserMedia ||
-										navigator.msGetUserMedia;
-				if (!navigator.getUserMedia) {
-					alert('getUserMedia not supported in your browser.');
-				}
+		var client = new BinaryClient('ws://localhost:9000/binary-endpoint');
+		var source, Stream;
+		client.on('open', function() {
 
-				function sendToServer(e) {
-					var audioContext = window.AudioContext || window.webkitAudioContext;
-					context = new audioContext();
-					// the sample rate is in context.sampleRate
-					var audioInput = context.createMediaStreamSource(e);
 
-					var bufferSize = 2048;
-					var recorder = context.createScriptProcessor(bufferSize, 1, 1);
+		});
 
-					recorder.onaudioprocess = function(e){
-						if(!isAskingMode) return;
-						console.log ('recording');
-						var left = e.inputBuffer.getChannelData(0);
-						window.Stream.write(convertoFloat32ToInt16(left));
-					}
 
-					audioInput.connect(recorder)
-					recorder.connect(context.destination);
-				}
 
-				function recordAudio(e) {
-					navigator.getUserMedia({audio:true}, sendToServer, function(e) {
-						alert('Error capturing audio.');
+		function receiveAndPlayResponse() {
+			// Received new audio stream from server!
+			source = context.createBufferSource();
+			Stream.end();
+			source.start(0);
+			client.on('stream', function(stream, meta){
+				console.log('on Stream-------');
+				// Buffer for parts
+				var parts = [];
+				// Got new data
+				stream.on('data', function(data){
+					console.log('Getting Data back--------');
+					parts.push(data);
+
+				  });
+				stream.on('end', function(){
+
+					var nowBuffering = parts.reduce(function(buffer1, buffer2) {
+						var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+						tmp.set(new Uint8Array(buffer1), 0);
+						tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+						return tmp.buffer;
 					});
-				}
-
-				function convertoFloat32ToInt16(buffer) {
-					var l = buffer.length;
-					var buf = new Int16Array(l)
-					while (l--) {
-						buf[l] = buffer[l]*0xFFFF;    //convert to 16 bit
-					}
-					return buf.buffer
-				}
-
-				function receiveAndPlayResponse() {
-					// Received new audio stream from server!
-					source = context.createBufferSource();
-
-					source.start(0);
-					client.on('stream', function(stream, meta){
-						// Buffer for parts
-						var parts = [];
-						// Got new data
-						stream.on('data', function(data){
-							parts.push(data);
-
-						  });
-						stream.on('end', function(){
-
-							var nowBuffering = parts.reduce(function(buffer1, buffer2) {
-								var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-								tmp.set(new Uint8Array(buffer1), 0);
-								tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-								return tmp.buffer;
-							});
-							context.decodeAudioData(nowBuffering, function(buf) {
-								//_audioBuffer = buf;
-								source.buffer = buf;
-								source.connect(context.destination);
-								//source.stop(0);
-							});
-						});
+					context.decodeAudioData(nowBuffering, function(buf) {
+						//_audioBuffer = buf;
+						source.buffer = buf;
+						source.connect(context.destination);
+						//source.stop(0);
 					});
-				}
-				window.handleClick = function() {
-					isAskingMode = !isAskingMode;
-					//if was not asking,
-					if (isAskingMode) {
-						if(source) {
-							source.stop(0);
-						}
-						recordAudio();
-						//TODO: Toggle the button state To Done Asking
-						$askBtn.innerText = 'Done Asking';
-						//TODO: Stream the audio from client to Server
-
-					} else {
-						window.Stream.end();
-						//TODO: Receive the audio response from server
-						receiveAndPlayResponse();
-						//TODO: Disable the button until the response is played
-						event.currentTarget.disbled = true;
-						event.currentTarget.innerText = 'Ask Me';
-					}
-				}
-
-			})
-
-		})(this);
+				});
+			});
+		}
 
 
+		function convertoFloat32ToInt16(buffer) {
+			var l = buffer.length;
+			var buf = new Int16Array(l)
+			while (l--) {
+				buf[l] = buffer[l]*0xFFFF;    //convert to 16 bit
+			}
+			return buf.buffer
+		}
 
+		function sendToServer(e) {
+			var audioContext = window.AudioContext || window.webkitAudioContext;
+			context = new audioContext();
+			// the sample rate is in context.sampleRate
+			var audioInput = context.createMediaStreamSource(e);
+
+			var bufferSize = 2048;
+			var recorder = context.createScriptProcessor(bufferSize, 1, 1);
+
+			recorder.onaudioprocess = function(e){
+				if(!isAskingMode) return;
+				console.log ('recording');
+				var left = e.inputBuffer.getChannelData(0);
+				Stream.write(convertoFloat32ToInt16(left));
+			}
+
+			audioInput.connect(recorder)
+			recorder.connect(context.destination);
+		}
+
+		function recordAudio(e) {
+			Stream = client.createStream();
+			navigator.getUserMedia({audio:true}, sendToServer, function(e) {
+				alert('Error capturing audio.');
+			});
+		}
+
+		function handleClick() {
+			isAskingMode = !isAskingMode;
+			if (isAskingMode) {
+				recordAudio();
+				$askBtn.innerText = 'Done Asking';
+			} else {
+				receiveAndPlayResponse();
+				event.currentTarget.disbled = true;
+				event.currentTarget.innerText = 'Ask Me';
+			}
+		}
 
 
 
