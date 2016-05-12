@@ -99,14 +99,11 @@ binaryserver.on('connection', function(client){
 
 	// Incoming stream from browsers
 	client.on('stream', function(stream, meta){
-		console.log('new stream', meta);
 		var fileWriter = getFileWriter();
 
 		stream.pipe(fileWriter);
 		stream.on('end', function() {
 			fileWriter.end();
-			console.log('wrote to file ', meta );
-
 			var file = fs.createReadStream(FILE);
 			client.send(file);
 
