@@ -92,6 +92,9 @@
 
 		function recordAudio(e) {
 			Stream = client.createStream();
+			if(source){
+				source.stop();
+			}
 			navigator.getUserMedia({audio:true}, sendToServer, function(e) {
 				alert('Error capturing audio.');
 			});
