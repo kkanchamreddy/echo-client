@@ -13,7 +13,7 @@ var config = require("./config.js");
 var port = normalizePort(process.env.PORT || '9000');
 app.set('port', port);
 
-/*
+
 var options = {
 	key: fs.readFileSync(config.sslKey),
 	cert: fs.readFileSync(config.sslCert),
@@ -21,7 +21,7 @@ var options = {
 	requestCert: true,
 	rejectUnauthorized: false,
 };
-*/
+
 
 /**
  * Normalize a port into a number, string, or false.
